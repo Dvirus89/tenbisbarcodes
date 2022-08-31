@@ -7,7 +7,7 @@ import json
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 TENBIS_FQDN="https://www.10bis.co.il"
-DEBUG=True
+DEBUG=False
 
 def main_procedure():
     sessionpicklepath = '/var/tmp/sessions.pickle'
@@ -25,7 +25,7 @@ def main_procedure():
         <head> <title></title> </head>
         <body>
             <table border=1>
-            <tr> <td>Order date</td>   <td>Barcode number</td>   <td>Barcode image</td>   <td>Amount</td>   <td>Expiration date</td>
+            <tr> <td>Item number</td>  <td>Order date</td>   <td>Barcode number</td>   <td>Barcode image</td>   <td>Amount</td>   <td>Expiration date</td>
             xxxdataxxx
             </table>
         </body>
@@ -34,9 +34,10 @@ def main_procedure():
 
     rowsdata=''
     rowtemplate = """
-    <tr> <td>xxxorderDateStrxxx</td>   <td>xxxBarCodeNumberxxx</td>   <td><img src='xxxBarCodeImgUrlxxx'></td>   <td>xxxAmountxxx</td>   <td>xxxValidDatexxx</td></tr>
+    <tr>  <td>xxxcountxxx</td>   <td>xxxorderDateStrxxx</td>   <td>xxxBarCodeNumberxxx</td>   <td><img src='xxxBarCodeImgUrlxxx'></td>   <td>xxxAmountxxx</td>   <td>xxxValidDatexxx</td></tr>
     <tr> <td></td>   <td></td>   <td></br></br></br></td>   <td></td>   <td></td></tr>
     """
+    count = 0
     for num in range(0, 38):
         monthstr = '-xxxnumxxx'
         if num == 0:
@@ -47,20 +48,23 @@ def main_procedure():
             #print(order)
             used, BarCodeNumber, BarCodeImgUrl, Amount, ValidDate = getShufersalOrderInfo(session, order['orderId'], order['restaurantId'])
             if not used:
+                count+=1
                 newrow = rowtemplate
+                newrow = newrow.replace('xxxcountxxx',str(count))
                 newrow = newrow.replace('xxxorderDateStrxxx',order['orderDateStr'])
                 newrow = newrow.replace('xxxBarCodeNumberxxx',BarCodeNumber)
                 newrow = newrow.replace('xxxBarCodeImgUrlxxx',BarCodeImgUrl)
                 newrow = newrow.replace('xxxAmountxxx',Amount)
                 newrow = newrow.replace('xxxValidDatexxx', ValidDate)
                 rowsdata += newrow
-                if DEBUG:
-                    print(order['orderDateStr'], BarCodeNumber, BarCodeImgUrl, Amount, ValidDate)
+                print("Token found! ", order['orderDateStr'], BarCodeNumber, BarCodeImgUrl, Amount, ValidDate)
     htmlversion = htmlversion.replace('xxxdataxxx',rowsdata)
-    with open('/var/tmp/report.html', 'a') as report_file:
-        report_file.write(htmlversion)
-        report_file.close()
-    print('Please find your report here: /var/tmp/report.html')
+    if count > 0:
+        with open('/var/tmp/report.html', 'a') as report_file:
+            report_file.write(htmlversion)
+            report_file.close()
+        print(str(count), "tokens were found!")
+        print('Please find your report here: /var/tmp/report.html')
 
 
 
