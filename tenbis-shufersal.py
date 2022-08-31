@@ -2,14 +2,12 @@ import requests
 import os.path
 import pickle
 import urllib3
-import time
 import json
-from getpass import getpass
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 TENBIS_FQDN="https://www.10bis.co.il"
-DEBUG=False
+DEBUG=True
 
 def main_procedure():
     sessionpicklepath = '/var/tmp/sessions.pickle'
@@ -56,11 +54,13 @@ def main_procedure():
                 newrow = newrow.replace('xxxAmountxxx',Amount)
                 newrow = newrow.replace('xxxValidDatexxx', ValidDate)
                 rowsdata += newrow
-                print(order['orderDateStr'], BarCodeNumber, BarCodeImgUrl, Amount, ValidDate)
+                if DEBUG:
+                    print(order['orderDateStr'], BarCodeNumber, BarCodeImgUrl, Amount, ValidDate)
     htmlversion = htmlversion.replace('xxxdataxxx',rowsdata)
     with open('/var/tmp/report.html', 'a') as report_file:
         report_file.write(htmlversion)
         report_file.close()
+    print('Please find your report here: /var/tmp/report.html')
 
 
 
