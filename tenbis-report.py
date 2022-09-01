@@ -12,15 +12,41 @@ OUTPUT_PATH = "/var/tmp/report.html"
 TENBIS_FQDN = "https://www.10bis.co.il"
 DEBUG = False
 HTML_ROW_TEMPLATE = """
-    <tr>  <td>{counter}</td>   <td>{order_date}</td>   <td>{barcode_number}</td>   <td><img src='{barcode_img_url}'></td>   <td>{amount}</td>   <td>{valid_date}</td></tr>
-    <tr> <td></td>   <td></td>   <td></br></br></br></td>   <td></td>   <td></td></tr>
+    <tr>  <td>{counter}</td>   <td>{order_date}</td>   <td>{barcode_number}</td>   <td><img src='{barcode_img_url}'></td>   <td>{amount}</td>   <td>{valid_date}</br></br></td></tr>
     """
 HTML_PAGE_TEMPLATE = """
+        <!DOCTYPE html>
         <html>
-        <head> <title></title> </head>
+        <head>
+        <style>
+        #barcodes {{
+        font-family: Arial, Helvetica, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+        }}
+
+        #barcodes td, #barcodes th {{
+        border: 1px solid #ddd;
+        padding: 8px;
+        }}
+
+        #barcodes tr:nth-child(even){{background-color: #f2f2f2;}}
+
+        #barcodes tr:hover {{background-color: #ddd;}}
+
+        #barcodes th {{
+        padding-top: 12px;
+        padding-bottom: 12px;
+        text-align: left;
+        background-color: #04AA6D;
+        color: white;
+        }}
+        </style>
+        </head>
         <body>
-            <table border=1>
-            <tr> <td>Item number</td>  <td>Order date</td>   <td>Barcode number</td>   <td>Barcode image</td>   <td>Amount</td>   <td>Expiration date</td>
+            <h1> Non used barcodes </h1>
+            <table id="barcodes">
+            <tr> <th>Item number</th>  <th>Order date</th>   <th>Barcode number</th>   <th>Barcode image</th>   <th>Amount</th>   <th>Expiration date</th>
             {output_table}
             </table>
         </body>
@@ -41,7 +67,7 @@ def main_procedure():
 
     rows_data=''
     count = 0
-    for num in range(0, -38, -1):
+    for num in range(0, -36, -1):
         month_json_result = get_report_for_month(session, str(num))
         for order in month_json_result:
             used, barcode_number, barcode_img_url, amount, valid_date = get_shufersal_order_info(session, order['orderId'], order['restaurantId'])
