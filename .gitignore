@@ -127,3 +127,8 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# private user files
+report.html
+sessions.pickle
+usertoken.pickle

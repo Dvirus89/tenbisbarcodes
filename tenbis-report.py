@@ -1,14 +1,17 @@
 import requests
-import os.path
+import os 
 import pickle
 import urllib3
 import json
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-SESSION_PATH = "/var/tmp/sessions.pickle"
-TOKEN_PATH = "/var/tmp/usertoken.pickle"
-OUTPUT_PATH = "/var/tmp/report.html"
+
+
+CWD=os.getcwd()
+SESSION_PATH = f"{CWD}/sessions.pickle"
+TOKEN_PATH = f"{CWD}/usertoken.pickle"
+OUTPUT_PATH = f"{CWD}/report.html"
 TENBIS_FQDN = "https://www.10bis.co.il"
 DEBUG = False
 HTML_ROW_TEMPLATE = """
@@ -80,7 +83,7 @@ def main_procedure():
     if count > 0:
         write_file(OUTPUT_PATH, HTML_PAGE_TEMPLATE.format(output_table=rows_data))
         print(str(count), "tokens were found!")
-        print(f'Please find your report here: {OUTPUT_PATH}')
+        print(f'Please find your report here: {CWD} (report.html)')
 
 
 def write_file(path, content):
