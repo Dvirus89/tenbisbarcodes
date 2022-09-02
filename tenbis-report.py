@@ -4,10 +4,8 @@ import pickle
 import urllib3
 import json
 
+
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-
-
 CWD=os.getcwd()
 SESSION_PATH = f"{CWD}/sessions.pickle"
 TOKEN_PATH = f"{CWD}/usertoken.pickle"
@@ -70,7 +68,8 @@ def main_procedure():
 
     rows_data=''
     count = 0
-    for num in range(0, -36, -1):
+    years_to_check = -abs(input_number('How many years back to scan? ')) * 12
+    for num in range(0, years_to_check, -1):
         month_json_result = get_report_for_month(session, str(num))
         for order in month_json_result:
             used, barcode_number, barcode_img_url, amount, valid_date = get_shufersal_order_info(session, order['orderId'], order['restaurantId'])
@@ -84,12 +83,23 @@ def main_procedure():
         write_file(OUTPUT_PATH, HTML_PAGE_TEMPLATE.format(output_table=rows_data))
         print(str(count), "tokens were found!")
         print(f'Please find your report here: {CWD} (report.html)')
+    else:
+        print('No tokens were found.')
 
+def input_number(message):
+  while True:
+    try:
+       userInput = int(input(message))       
+    except ValueError:
+       print("Not an integer! Try again. (examples: 1,2,3,4,5)")
+       continue
+    else:
+       return userInput 
+       break 
 
 def write_file(path, content):
     with open(path, 'w') as f:
         f.write(content)
-
 
 def create_pickle(obj, path):
     with open(path, 'wb') as session_file:
@@ -132,7 +142,6 @@ def get_shufersal_order_info(session, order_id, res_id):
 
     return used, '', '', '', ''
 
-# Test this
 def auth_tenbis():
     # Phase one -> Email
     email = input("Enter email: ")
@@ -178,7 +187,6 @@ def auth_tenbis():
         print(session)
 
     return session
-
 
 if __name__ == '__main__':
     main_procedure()
