@@ -130,6 +130,6 @@ dmypy.json
 .DS_Store
 
 # private user files
-report.html
+*.html
 sessions.pickle
 usertoken.pickle
