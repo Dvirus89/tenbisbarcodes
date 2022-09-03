@@ -135,10 +135,11 @@ def get_shufersal_order_info(session, order_id, res_id):
 
     if not used:
         barcode_number = resp_json['Data']['Vouchers'][0]['BarCodeNumber']
+        barcode_number_formatted = '-'.join(barcode_number[i:i+4] for i in range(0, len(barcode_number), 4))
         barcode_img_url = resp_json['Data']['Vouchers'][0]['BarCodeImgUrl']
         amount = resp_json['Data']['Vouchers'][0]['Amount']
         valid_date = resp_json['Data']['Vouchers'][0]['ValidDate']
-        return used, barcode_number, barcode_img_url, amount, valid_date
+        return used, barcode_number_formatted, barcode_img_url, amount, valid_date
 
     return used, '', '', '', ''
 
