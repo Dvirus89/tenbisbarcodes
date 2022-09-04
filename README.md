@@ -3,6 +3,7 @@
 
 ## Usage:
 ```
+pip3 install -r requirements.txt
 git clone https://github.com/Dvirus89/tenbisbarcodes
 cd tenbisbarcodes
 python3 tenbis-report.py
