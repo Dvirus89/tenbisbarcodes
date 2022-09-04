@@ -1,5 +1,5 @@
 # Find unused 10bis barcodes (Shufersal/Victory)
-(10Bis updates their barcodes usage state every week or two, so consider only records older than two weeks as valid)
+## ** PLEASE NOTE ** 10Bis updates their barcodes usage state every week or two, so consider only records older than two weeks as valid)
 
 ## Usage:
 ```
