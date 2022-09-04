@@ -11,5 +11,5 @@ python3 tenbis-report.py
 ## The output:
 Printable report - the easiest way to use the barcodes.
 
-![image](https://user-images.githubusercontent.com/1368112/187869545-3efedb82-2d0d-4d3f-a2aa-2554fef22f44.png)
+![image](https://user-images.githubusercontent.com/1368112/188301719-b029032a-41a8-4f9f-9090-a452294a45f1.png)
 
