@@ -13,7 +13,7 @@ OUTPUT_PATH = f"{CWD}/report.html"
 TENBIS_FQDN = "https://www.10bis.co.il"
 DEBUG = False
 HTML_ROW_TEMPLATE = """
-    <tr>  <td>{counter}</td>   <td>{order_date}</td>   <td>{barcode_number}</td>   <td><img src='{barcode_img_url}'></td>   <td>{amount}</td>   <td>{valid_date}</br></br></td></tr>
+    <tr>  <td>{counter}</td>  <td>{store}</td>   <td>{order_date}</td>   <td>{barcode_number}</td>   <td><img src='{barcode_img_url}'></td>   <td>{amount}</td>   <td>{valid_date}</br></br></td></tr>
     """
 HTML_PAGE_TEMPLATE = """
         <!DOCTYPE html>
@@ -47,7 +47,7 @@ HTML_PAGE_TEMPLATE = """
         <body>
             <h1> Non used barcodes </h1>
             <table id="barcodes">
-            <tr> <th>Item number</th>  <th>Order date</th>   <th>Barcode number</th>   <th>Barcode image</th>   <th>Amount</th>   <th>Expiration date</th>
+            <tr> <th>Item number</th> <th>Store</th>  <th>Order date</th>   <th>Barcode number</th>   <th>Barcode image</th>   <th>Amount</th>   <th>Expiration date</th>
             {output_table}
             </table>
         </body>
@@ -72,12 +72,12 @@ def main_procedure():
     for num in range(0, years_to_check, -1):
         month_json_result = get_report_for_month(session, str(num))
         for order in month_json_result:
-            used, barcode_number, barcode_img_url, amount, valid_date = get_shufersal_order_info(session, order['orderId'], order['restaurantId'])
+            used, barcode_number, barcode_img_url, amount, valid_date = get_barcode_order_info(session, order['orderId'], order['restaurantId'])
             if not used:
                 count+=1
-                rows_data += HTML_ROW_TEMPLATE.format(counter=str(count), order_date=order['orderDateStr'], barcode_number=barcode_number,
+                rows_data += HTML_ROW_TEMPLATE.format(counter=str(count), store=order['restaurantName'], order_date=order['orderDateStr'], barcode_number=barcode_number,
                                                     barcode_img_url=barcode_img_url, amount=amount, valid_date=valid_date)
-                print("Token found! ", order['orderDateStr'], barcode_number, barcode_img_url, amount, valid_date)
+                print("Token found! ", count, order['orderDateStr'], barcode_number, barcode_img_url, amount, valid_date)
 
     if count > 0:
         write_file(OUTPUT_PATH, HTML_PAGE_TEMPLATE.format(output_table=rows_data))
@@ -121,11 +121,11 @@ def get_report_for_month(session, month):
 
     resp_json = json.loads(response.text)
     all_orders = resp_json['Data']['orderList']
-    shufersal_orders = [x for x in all_orders if x['isBarCodeOrder'] == True]
+    barcode_orders = [x for x in all_orders if x['isBarCodeOrder'] == True]
     
-    return shufersal_orders
+    return barcode_orders
 
-def get_shufersal_order_info(session, order_id, res_id):
+def get_barcode_order_info(session, order_id, res_id):
     endpoint = TENBIS_FQDN + f"/NextApi/GetOrderBarcode?culture=he-IL&uiCulture=he&orderId={order_id}&resId={res_id}"
     headers = {"content-type": "application/json"}
     headers.update({'user-token': session.user_token})
