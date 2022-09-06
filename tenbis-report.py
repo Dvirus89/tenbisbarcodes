@@ -98,7 +98,7 @@ def input_number(message):
        break 
 
 def write_file(path, content):
-    with open(path, 'w') as f:
+    with open(path, 'w', encoding='utf-8') as f:
         f.write(content)
 
 def create_pickle(obj, path):
