@@ -131,6 +131,8 @@ def get_barcode_order_info(session, order_id, res_id):
     headers.update({'user-token': session.user_token})
     response = session.get(endpoint, headers=headers, verify=False)
     resp_json = json.loads(response.text)
+    if(DEBUG):
+        print(endpoint + "\r\n" + str(response.status_code) + "\r\n"  + response.text)
     used = resp_json['Data']['Vouchers'][0]['Used']
 
     if not used:
