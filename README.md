@@ -20,5 +20,5 @@ Download https://github.com/Dvirus89/tenbisbarcodes/releases/download/v1.0-beta/
 ## The output:
 Printable report - the easiest way to use the barcodes.
 
-![image](https://user-images.githubusercontent.com/1368112/188301719-b029032a-41a8-4f9f-9090-a452294a45f1.png)
+![image](https://user-images.githubusercontent.com/1368112/198884634-8ea548a2-8bb9-4fdf-81b1-ade2370452b1.png)
 
