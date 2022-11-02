@@ -3,13 +3,15 @@ import os
 import pickle
 import urllib3
 import json
+from datetime import date
 
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 CWD=os.getcwd()
 SESSION_PATH = f"{CWD}/sessions.pickle"
 TOKEN_PATH = f"{CWD}/usertoken.pickle"
-OUTPUT_PATH = f"{CWD}/report.html"
+FILENAME = f"report-{date.today().strftime('%d-%b-%Y')}.html"
+OUTPUT_PATH = f"{CWD}/{FILENAME}"
 TENBIS_FQDN = "https://www.10bis.co.il"
 DEBUG = False
 HTML_ROW_TEMPLATE = """
@@ -121,7 +123,7 @@ def main_procedure():
     if count > 0:
         write_file(OUTPUT_PATH, HTML_PAGE_TEMPLATE.format(output_table=rows_data))
         print(str(count), "tokens were found!")
-        print(f'Please find your report here: {CWD} (report.html)')
+        print(f'Please find your report here: {CWD} ({FILENAME})')
     else:
         print('No tokens were found.')
 
