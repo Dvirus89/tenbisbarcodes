@@ -15,10 +15,18 @@ Download https://github.com/Dvirus89/tenbisbarcodes/releases/download/v1.0-beta/
 (MD5 f71826471df37529420081033e942df5)
 
 
-
-
 ## The output:
-Printable report - the easiest way to use the barcodes.
+HTML report - the easiest way to use the barcodes.
+
+1. Just save the HTML file to your mobile device
+2. Click "Hide All" - to hide all the barcodes
+3. Click in the gray area to expose a single barcode
+4. Scan the barcode with the BLACK barcode scanners. (images below)
+5. Click the used barcode to hide it
+6. Repeat (from step 3)
 
 ![image](https://user-images.githubusercontent.com/1368112/198884634-8ea548a2-8bb9-4fdf-81b1-ade2370452b1.png)
+
+## Identify the barcode scanners:
+![image](https://user-images.githubusercontent.com/1368112/212545083-bdefee29-b4b9-4e9a-b28f-20d7860948d8.png)
 
