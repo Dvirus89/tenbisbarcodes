@@ -25,7 +25,8 @@ HTML report - the easiest way to use the barcodes.
 5. Click the used barcode to hide it
 6. Repeat (from step 3)
 
-![image](https://user-images.githubusercontent.com/1368112/198884634-8ea548a2-8bb9-4fdf-81b1-ade2370452b1.png)
+![image](https://user-images.githubusercontent.com/1368112/212760973-912c3332-6915-4cb4-8ab1-c00006011891.png)
+
 
 ## Identify the barcode scanners:
 ![image](https://user-images.githubusercontent.com/1368112/212545083-bdefee29-b4b9-4e9a-b28f-20d7860948d8.png)
