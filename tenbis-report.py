@@ -121,9 +121,9 @@ def main_procedure():
             if not used:
                 rows_data += HTML_ROW_TEMPLATE.format(counter=str(count), store=order['restaurantName'], order_date=order['orderDateStr'], barcode_number=barcode_number,
                                                     barcode_img_url=barcode_img_url, amount=amount, valid_date=valid_date)
-                print("Token found! ", count, order['orderDateStr'], barcode_number, barcode_img_url, amount, valid_date)
                 count+=1
                 total_amount += int(amount)
+                print("Token found! ", count, order['orderDateStr'], barcode_number, barcode_img_url, amount, valid_date)
 
     if count > 0:
         write_file(OUTPUT_PATH, HTML_PAGE_TEMPLATE.format(output_table=rows_data))
