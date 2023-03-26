@@ -105,24 +105,29 @@ def main_procedure():
     # If there's no token, authenticate 10bis and extract auth tokens
     else:
         session = auth_tenbis()
+        if(not session):
+            print("exit")
+            return
         create_pickle(session,SESSION_PATH)
 
     rows_data=''
     count = 0
+    total_amount = 0
     years_to_check = -abs(input_number('How many years back to scan? ')) * 12
     for num in range(0, years_to_check, -1):
         month_json_result = get_report_for_month(session, str(num))
         for order in month_json_result:
             used, barcode_number, barcode_img_url, amount, valid_date = get_barcode_order_info(session, order['orderId'], order['restaurantId'])
             if not used:
-                count+=1
                 rows_data += HTML_ROW_TEMPLATE.format(counter=str(count), store=order['restaurantName'], order_date=order['orderDateStr'], barcode_number=barcode_number,
                                                     barcode_img_url=barcode_img_url, amount=amount, valid_date=valid_date)
                 print("Token found! ", count, order['orderDateStr'], barcode_number, barcode_img_url, amount, valid_date)
+                count+=1
+                total_amount += int(amount)
 
     if count > 0:
         write_file(OUTPUT_PATH, HTML_PAGE_TEMPLATE.format(output_table=rows_data))
-        print(str(count), "tokens were found!")
+        print(f"{str(count)} tokens were found with total of {total_amount} NIS!")
         print(f'Please find your report here: {CWD} ({FILENAME})')
     else:
         print('No tokens were found.')
@@ -150,6 +155,9 @@ def load_pickle(path):
     with open(path, 'rb') as session_file:
         objfrompickle = pickle.load(session_file)
         return objfrompickle
+
+def print_hebrew(heb_txt):
+    print(heb_txt[::-1])
 
 def get_report_for_month(session, month):
     endpoint = TENBIS_FQDN + "/NextApi/UserTransactionsReport"
@@ -197,14 +205,17 @@ def auth_tenbis():
 
     response = session.post(endpoint, data=json.dumps(payload), headers=headers, verify=False)
     resp_json = json.loads(response.text)
+    error_msg = resp_json['Errors']
 
     if(DEBUG):
         print(endpoint + "\r\n" + str(response.status_code) + "\r\n"  + response.text)
 
-    if (200 <= response.status_code <= 210):
-        print("login successful")
+    if (200 <= response.status_code <= 210 and (len(error_msg) == 0)):
+        print("User exist, next step is...")
     else:
         print("login failed")
+        print_hebrew((error_msg[0]['ErrorDesc']))
+        return False
 
     # Phase two -> OTP
     endpoint = TENBIS_FQDN + "/NextApi/GetUserV2"
@@ -221,7 +232,14 @@ def auth_tenbis():
 
     response = session.post(endpoint, data=json.dumps(payload), headers=headers, verify=False)
     resp_json = json.loads(response.text)
+    error_msg = resp_json['Errors']
     user_token = resp_json['Data']['userToken']
+    if (200 <= response.status_code <= 210 and (len(error_msg) == 0)):
+        print("login successful...")
+    else:
+        print("login failed")
+        print_hebrew((error_msg[0]['ErrorDesc']))
+        return False
 
     create_pickle(user_token, TOKEN_PATH)
     session.user_token = user_token
