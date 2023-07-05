@@ -191,7 +191,7 @@ def get_barcode_order_info(session, order_id, res_id):
     if(not success_code):
         print_hebrew((error_msg['ErrorDesc']))
         print_hebrew("Error, trying moving to the next barcode")
-        return used, '', '', '', ''
+        return True, '', '', '', ''
     used = resp_json['Data']['Vouchers'][0]['Used']
 
     if not used:
