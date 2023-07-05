@@ -164,11 +164,15 @@ def get_report_for_month(session, month):
     payload = {"culture": "he-IL", "uiCulture": "he", "dateBias": month}
     headers = {"content-type": "application/json", "user-token": session.user_token}
     response = session.post(endpoint, data=json.dumps(payload), headers=headers, verify=False)
-
     if(DEBUG):
         print(endpoint + "\r\n" + str(response.status_code) + "\r\n"  + response.text)
-
     resp_json = json.loads(response.text)
+    error_msg = resp_json['Errors']
+    success_code = resp_json['Success']
+    if(not success_code):
+        print_hebrew((error_msg[0]['ErrorDesc']))
+        return
+
     all_orders = resp_json['Data']['orderList']
     barcode_orders = [x for x in all_orders if x['isBarCodeOrder'] == True]
     
@@ -182,6 +186,12 @@ def get_barcode_order_info(session, order_id, res_id):
     if(DEBUG):
         print(endpoint + "\r\n" + str(response.status_code) + "\r\n"  + response.text)
     resp_json = json.loads(response.text)
+    error_msg = resp_json['Error']
+    success_code = resp_json['Success']
+    if(not success_code):
+        print_hebrew((error_msg['ErrorDesc']))
+        print_hebrew("Error, trying moving to the next barcode")
+        return used, '', '', '', ''
     used = resp_json['Data']['Vouchers'][0]['Used']
 
     if not used:
@@ -204,11 +214,10 @@ def auth_tenbis():
     session = requests.session()
 
     response = session.post(endpoint, data=json.dumps(payload), headers=headers, verify=False)
-    resp_json = json.loads(response.text)
-    error_msg = resp_json['Errors']
-
     if(DEBUG):
         print(endpoint + "\r\n" + str(response.status_code) + "\r\n"  + response.text)
+    resp_json = json.loads(response.text)
+    error_msg = resp_json['Errors']
 
     if (200 <= response.status_code <= 210 and (len(error_msg) == 0)):
         print("User exist, next step is...")
