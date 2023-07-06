@@ -1,6 +1,8 @@
 # Find unused 10bis barcodes (Shufersal/Victory)
 ## ** PLEASE NOTE **  - 10Bis updates their barcodes usage state every week or two, so consider only records older than two weeks as valid)
 
+* You should also checkout this repo https://github.com/Dvirus89/tenbis-buy-coupons to automatically purchase Shufersal coupons using the best optimized combination to utilize all the remaining credit.
+
 ## Usage:
 ```
 git clone https://github.com/Dvirus89/tenbisbarcodes
