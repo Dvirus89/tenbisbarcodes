@@ -162,7 +162,14 @@ def print_hebrew(heb_txt):
 def get_report_for_month(session, month):
     endpoint = TENBIS_FQDN + "/NextApi/UserTransactionsReport"
     payload = {"culture": "he-IL", "uiCulture": "he", "dateBias": month}
-    headers = {"content-type": "application/json", "user-token": session.user_token}
+    headers = {
+        "content-type": "application/json", 
+        "user-token": session.user_token,
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+        "Accept": "application/json, text/plain, */*",
+        "Accept-Language": "he-IL,he;q=0.9,en;q=0.8",
+        "Referer": "https://www.10bis.co.il/"
+    }
     response = session.post(endpoint, data=json.dumps(payload), headers=headers, verify=False)
     if(DEBUG):
         print(endpoint + "\r\n" + str(response.status_code) + "\r\n"  + response.text)
@@ -180,7 +187,14 @@ def get_report_for_month(session, month):
 
 def get_barcode_order_info(session, order_id, res_id):
     endpoint = TENBIS_FQDN + f"/NextApi/GetOrderBarcode?culture=he-IL&uiCulture=he&orderId={order_id}&resId={res_id}"
-    headers = {"content-type": "application/json"}
+    headers = {
+        "content-type": "application/json", 
+        "user-token": session.user_token,
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+        "Accept": "application/json, text/plain, */*",
+        "Accept-Language": "he-IL,he;q=0.9,en;q=0.8",
+        "Referer": "https://www.10bis.co.il/"
+    }
     headers.update({'user-token': session.user_token})
     response = session.get(endpoint, headers=headers, verify=False)
     if(DEBUG):
@@ -210,7 +224,13 @@ def auth_tenbis():
     endpoint = TENBIS_FQDN + "/NextApi/GetUserAuthenticationDataAndSendAuthenticationCodeToUser"
 
     payload = {"culture": "he-IL", "uiCulture": "he", "email": email}
-    headers = {"content-type": "application/json"}
+    headers = {
+        "content-type": "application/json",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+        "Accept": "application/json, text/plain, */*",
+        "Accept-Language": "he-IL,he;q=0.9,en;q=0.8",
+        "Referer": "https://www.10bis.co.il/"
+    }
     session = requests.session()
 
     response = session.post(endpoint, data=json.dumps(payload), headers=headers, verify=False)
