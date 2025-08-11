@@ -3,13 +3,25 @@
 
 * You should also checkout this repo https://github.com/Dvirus89/tenbis-buy-coupons to automatically purchase Shufersal coupons using the best optimized combination to utilize all the remaining credit.
 
-## Usage:
+## Usage - Windows:
 ```
 git clone https://github.com/Dvirus89/tenbisbarcodes
 cd tenbisbarcodes
+python3 -m venv tenbisbarcodes
+tenbisbarcodes/bin/activate
 pip3 install -r requirements.txt
 python3 tenbis-report.py
 ```
+## Usage - Linux/MacOS:
+```
+git clone https://github.com/Dvirus89/tenbisbarcodes
+cd tenbisbarcodes
+python3 -m venv tenbisbarcodes
+source tenbisbarcodes/bin/activate
+pip3 install -r requirements.txt
+python3 tenbis-report.py
+```
+
 
 ## Release for Windows user:
 Download https://github.com/Dvirus89/tenbisbarcodes/releases/download/v1.0-beta/tenbis-report.exe
