@@ -5,17 +5,11 @@
 
 ## Usage:
 ```
-git clone https://github.com/Dvirus89/tenbisbarcodes
+git clone https://github.com/michaelnaw/tenbisbarcodes
 cd tenbisbarcodes
 pip3 install -r requirements.txt
 python3 tenbis-report.py
 ```
-
-## Release for Windows user:
-Download https://github.com/Dvirus89/tenbisbarcodes/releases/download/v1.0-beta/tenbis-report.exe
-
-(MD5 f71826471df37529420081033e942df5)
-
 
 ## The output:
 HTML report - the easiest way to use the barcodes.
