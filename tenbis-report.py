@@ -1,6 +1,5 @@
 import requests
-import os 
-import pickle
+import os
 import urllib3
 import json
 from datetime import date
@@ -8,12 +7,15 @@ from datetime import date
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 CWD=os.getcwd()
-SESSION_PATH = f"{CWD}/sessions.pickle"
-TOKEN_PATH = f"{CWD}/usertoken.pickle"
 FILENAME = f"report-{date.today().strftime('%d-%b-%Y')}.html"
 OUTPUT_PATH = f"{CWD}/{FILENAME}"
 TENBIS_FQDN = "https://www.10bis.co.il"
+TENBIS_API_FQDN = "https://api.10bis.co.il"
 DEBUG = False
+
+# Restaurant IDs to scan (26698 is Shufersal, 42962 is Victory)
+RESTAURANTS = [26698, 42962]
+
 HTML_ROW_TEMPLATE = """
     <tr>  <td>{counter}</td>  <td>{store}</td>   <td>{order_date}</td>   <td>{barcode_number}</td>   <td style="text-align:center;"><img onclick="togglehideshow(this)" src='{barcode_img_url}'></td>   <td>{amount}</td>   <td>{valid_date}</br></br></td></tr>
     """
@@ -27,14 +29,14 @@ HTML_PAGE_TEMPLATE = """
             }}
             
             function hideall() {{
-            	var elems = document.getElementsByTagName('img');
+                var elems = document.getElementsByTagName('img');
                 for (var i = 0; i < elems.length; i++) {{
                     elems[i].style.opacity = -1;
                 }}
             }}
             
             function showall() {{
-            	var elems = document.getElementsByTagName('img');
+                var elems = document.getElementsByTagName('img');
                 for (var i = 0; i < elems.length; i++) {{
                     elems[i].style.opacity = 1;
                 }}
@@ -54,7 +56,7 @@ HTML_PAGE_TEMPLATE = """
         font-size: 16px;
         cursor: pointer;
         border-radius: 12px;
-      	}}
+        }}
         #barcodes {{
         font-family: Arial, Helvetica, sans-serif;
         border-collapse: collapse;
@@ -62,7 +64,8 @@ HTML_PAGE_TEMPLATE = """
         }}
         
         img {{
-        opacity: 1
+        opacity: 1;
+        max-width: 300px;
         }}
 
         #barcodes td, #barcodes th {{
@@ -96,34 +99,41 @@ HTML_PAGE_TEMPLATE = """
     """
 
 def main_procedure():
-    # If token exists, use the token to authenticate 10bis
-    if os.path.exists(SESSION_PATH) and os.path.exists(TOKEN_PATH):
-        session = load_pickle(SESSION_PATH)
-        user_token = load_pickle(TOKEN_PATH)
-        session.user_token = user_token
-
-    # If there's no token, authenticate 10bis and extract auth tokens
-    else:
-        session = auth_tenbis()
-        if(not session):
-            print("exit")
-            return
-        create_pickle(session,SESSION_PATH)
+    # Always authenticate fresh since pickle is removed
+    session = auth_tenbis()
+    if(not session):
+        print("exit")
+        return
 
     rows_data=''
     count = 0
     total_amount = 0
-    years_to_check = -abs(input_number('How many years back to scan? ')) * 12
-    for num in range(0, years_to_check, -1):
-        month_json_result = get_report_for_month(session, str(num))
-        for order in month_json_result:
-            used, barcode_number, barcode_img_url, amount, valid_date = get_barcode_order_info(session, order['orderId'], order['restaurantId'])
-            if not used:
-                rows_data += HTML_ROW_TEMPLATE.format(counter=str(count), store=order['restaurantName'], order_date=order['orderDateStr'], barcode_number=barcode_number,
+    
+    print(f"Scanning for vouchers in restaurants: {RESTAURANTS}...")
+
+    for res_id in RESTAURANTS:
+        # 1. Get all valid vouchers from the new API
+        vouchers_list = get_user_vouchers(session, res_id)
+        
+        for order in vouchers_list:
+             # 2. Extract basic info from new API
+            order_id = order.get('orderId')
+            
+            if DEBUG:
+                print(f"Processing Order ID: {order_id}")
+
+            # 3. Call OLD API to get the image URL and formatted barcode number
+            used, barcode_number, barcode_img_url, amount, valid_date = get_barcode_order_info(session, order_id, res_id)
+            
+            # Fallback if old API fails to parse dates/amounts, use new API data
+            if not amount: amount = order.get('amount')
+            if not valid_date: valid_date = order.get('validTill')
+
+            rows_data += HTML_ROW_TEMPLATE.format(counter=str(count), store=str(res_id), order_date=order.get('orderDate'), barcode_number=barcode_number,
                                                     barcode_img_url=barcode_img_url, amount=amount, valid_date=valid_date)
-                count+=1
-                total_amount += int(amount)
-                print("Token found! ", count, order['orderDateStr'], barcode_number, barcode_img_url, amount, valid_date)
+            count+=1
+            total_amount += int(amount) if amount else 0
+            print("Token found! ", count, order.get('orderDate'), barcode_number, amount)
 
     if count > 0:
         write_file(OUTPUT_PATH, HTML_PAGE_TEMPLATE.format(output_table=rows_data))
@@ -132,58 +142,33 @@ def main_procedure():
     else:
         print('No tokens were found.')
 
-def input_number(message):
-  while True:
-    try:
-       userInput = int(input(message))       
-    except ValueError:
-       print("Not an integer! Try again. (examples: 1,2,3,4,5)")
-       continue
+def get_user_vouchers(session, res_id):
+    endpoint = f"{TENBIS_API_FQDN}/api/v1/VoucherCards/GetUserVouchers?restaurantId={res_id}"
+    headers = {
+        "accept": "application/json, text/plain, */*",
+        "accept-language": "en-US,en;q=0.9",
+        "user-token": session.user_token,
+        "Authorization": f"Bearer {session.user_token}",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+    }
+    
+    response = session.get(endpoint, headers=headers, verify=False)
+    
+    if(DEBUG):
+        print(endpoint + "\r\n" + str(response.status_code) + "\r\n"  + response.text)
+        
+    if response.status_code == 200:
+        return json.loads(response.text)
     else:
-       return userInput 
-       break 
+        print(f"Failed to fetch vouchers for res_id {res_id}. Status: {response.status_code}")
+        return []
 
 def write_file(path, content):
     with open(path, 'w', encoding='utf-8') as f:
         f.write(content)
 
-def create_pickle(obj, path):
-    with open(path, 'wb') as session_file:
-        pickle.dump(obj, session_file)
-
-def load_pickle(path):
-    with open(path, 'rb') as session_file:
-        objfrompickle = pickle.load(session_file)
-        return objfrompickle
-
 def print_hebrew(heb_txt):
     print(heb_txt[::-1])
-
-def get_report_for_month(session, month):
-    endpoint = TENBIS_FQDN + "/NextApi/UserTransactionsReport"
-    payload = {"culture": "he-IL", "uiCulture": "he", "dateBias": month}
-    headers = {
-        "content-type": "application/json",
-        "user-token": session.user_token,
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-        "Accept": "application/json, text/plain, */*",
-        "Accept-Language": "he-IL,he;q=0.9,en;q=0.8",
-        "Referer": "https://www.10bis.co.il/"
-    }
-    response = session.post(endpoint, data=json.dumps(payload), headers=headers, verify=False)
-    if(DEBUG):
-        print(endpoint + "\r\n" + str(response.status_code) + "\r\n"  + response.text)
-    resp_json = json.loads(response.text)
-    error_msg = resp_json['Errors']
-    success_code = resp_json['Success']
-    if(not success_code):
-        print_hebrew((error_msg[0]['ErrorDesc']))
-        return
-
-    all_orders = resp_json['Data']['orderList']
-    barcode_orders = [x for x in all_orders if x['isBarCodeOrder'] == True]
-    
-    return barcode_orders
 
 def get_barcode_order_info(session, order_id, res_id):
     endpoint = TENBIS_FQDN + f"/NextApi/GetOrderBarcode?culture=he-IL&uiCulture=he&orderId={order_id}&resId={res_id}"
@@ -198,24 +183,30 @@ def get_barcode_order_info(session, order_id, res_id):
     response = session.get(endpoint, headers=headers, verify=False)
     if(DEBUG):
         print(endpoint + "\r\n" + str(response.status_code) + "\r\n"  + response.text)
-    resp_json = json.loads(response.text)
-    error_msg = resp_json['Error']
-    success_code = resp_json['Success']
-    if(not success_code):
-        print_hebrew((error_msg['ErrorDesc']))
-        print_hebrew("Error, trying moving to the next barcode")
-        return True, '', '', '', ''
-    used = resp_json['Data']['Vouchers'][0]['Used']
+    
+    try:
+        resp_json = json.loads(response.text)
+        error_msg = resp_json.get('Error')
+        success_code = resp_json.get('Success')
+        
+        if(not success_code):
+             if error_msg: print_hebrew((error_msg.get('ErrorDesc', '')))
+             return True, '', '', '', ''
+             
+        used = resp_json['Data']['Vouchers'][0]['Used']
 
-    if not used:
-        barcode_number = resp_json['Data']['Vouchers'][0]['BarCodeNumber']
-        barcode_number_formatted = '-'.join(barcode_number[i:i+4] for i in range(0, len(barcode_number), 4))
-        barcode_img_url = resp_json['Data']['Vouchers'][0]['BarCodeImgUrl']
-        amount = resp_json['Data']['Vouchers'][0]['Amount']
-        valid_date = resp_json['Data']['Vouchers'][0]['ValidDate']
-        return used, barcode_number_formatted, barcode_img_url, amount, valid_date
+        if not used:
+            barcode_number = resp_json['Data']['Vouchers'][0]['BarCodeNumber']
+            barcode_number_formatted = '-'.join(barcode_number[i:i+4] for i in range(0, len(barcode_number), 4))
+            barcode_img_url = resp_json['Data']['Vouchers'][0]['BarCodeImgUrl']
+            amount = resp_json['Data']['Vouchers'][0]['Amount']
+            valid_date = resp_json['Data']['Vouchers'][0]['ValidDate']
+            return used, barcode_number_formatted, barcode_img_url, amount, valid_date
+    except Exception as e:
+        if DEBUG: print(f"Error parsing detail for {order_id}: {e}")
+        pass
 
-    return used, '', '', '', ''
+    return True, '', '', '', ''
 
 def auth_tenbis():
     # Phase one -> Email
@@ -269,7 +260,6 @@ def auth_tenbis():
         print_hebrew((error_msg[0]['ErrorDesc']))
         return False
 
-    create_pickle(user_token, TOKEN_PATH)
     session.user_token = user_token
 
     if(DEBUG):
