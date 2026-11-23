@@ -132,12 +132,12 @@ def main_procedure():
             rows_data += HTML_ROW_TEMPLATE.format(counter=str(count), store=str(res_id), order_date=order.get('orderDate'), barcode_number=barcode_number,
                                                     barcode_img_url=barcode_img_url, amount=amount, valid_date=valid_date)
             count+=1
-            total_amount += int(amount) if amount else 0
+            total_amount += float(amount) if amount else 0
             print("Token found! ", count, order.get('orderDate'), barcode_number, amount)
 
     if count > 0:
         write_file(OUTPUT_PATH, HTML_PAGE_TEMPLATE.format(output_table=rows_data))
-        print(f"{str(count)} tokens were found with total of {total_amount} NIS!")
+        print(f"{str(count)} tokens were found with total of {total_amount:.2f} NIS!")
         print(f'Please find your report here: {CWD} ({FILENAME})')
     else:
         print('No tokens were found.')
